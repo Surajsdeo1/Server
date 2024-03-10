@@ -1,6 +1,9 @@
 const User=require("../models/User");
 const  OTP=require("../models/Otp");
 const otpgenerator=require("otp-generator");
+const jwt=require("jsonwebtoken");
+require("dotenv").config();
+
 
 
 //SEND OTP
@@ -140,5 +143,86 @@ const otpPayload={email,otp};
         //Hash Password
         
 
+
+    }
+    //LogIn page Authen9tication
+    exports.login=async(req,res)=>{
+        try {
+            //get data from req body
+            const {email,password}=req.body;
+             //validation data
+             if(!email || !password)
+             {
+                return res.status(403).json({
+                    success:false,
+                    message:"All field are Required to fill"
+
+                });
+             }
+             //user check exist or not
+             const user=await User.findOne({email}).populate("aditionalDetails");
+             if(!user){
+                return res.status(401).json({
+                    success:false,
+                    message:" <Sorry to say but>Email is Not registered, please SignUp first"
+                });
+             }
+             //Generate JWT  after password matching
+             if(await bcrypt.compare(password,user.password))
+             {
+                const payload={
+                    email:user.email,
+                    id:user._id,
+                    accountType:user.accountType,
+
+                }
+                const token=jwt.sign(payload, process.env.JWT_SECRET,{
+                    expiresIn:"2h",
+
+                });
+                user.token=token;
+                user.password=undefined
+
+           
+              //create cookie and send response
+              const options={
+                expires:new Date(Date.now() +3*24*60*60*1000),
+                httpOnly:true,
+              }
+              res.cookie("token",token,options).status(200).json({
+                success:false,
+                token,
+                user,
+                message:'Logged in succesfully',
+
+              })
+            }
+
+            else{
+                return res.status(401).json({
+                  success:false,
+                  message:'Password is not matched'
+                });
+            }
+             
+          
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                success:false,
+                message:'logIn failer please try again',
+            });
+            
+        }
+    }
+    //change password
+    //TODO HomeWork
+    exports.changePassword={
+        //get date from req body
+        //get oldpassword, newpassword,confirmNewPassword
+        //validation
+        //update pwd in DB
+        //send mail -password updated
+        //retrun response
 
     }
