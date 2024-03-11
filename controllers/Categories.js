@@ -1,7 +1,7 @@
-const Tag=require("../models/Tags");
+const Categories=require("../models/categories");
 //cerate  Tag ka handler function
 
-exports.createTag=async(req,res)=>{
+exports.createCategories=async(req,res)=>{
     try {
         //fetch data
         const {name,description}=req.body;
@@ -15,16 +15,16 @@ exports.createTag=async(req,res)=>{
             });
         }
         //create entry in DB
-        const tagDetails=await Tag.create({
+        const CategoriesDetails=await Categories.create({
             name:name,
             description:description,
 
         });
-        console.log(tagDetails);
+        console.log(CategoriesDetails);
         //return response
         return res.status(200).json({
             success:true,
-            message:'Tag Created Successfully',
+            message:'Categories Created Successfully',
         });
         
     } catch (error) {
@@ -41,13 +41,13 @@ exports.createTag=async(req,res)=>{
 
 //getAlltags handler function
 
-exports.showAlltags=async(req,res)=>{
+exports.showAllCategories=async(req,res)=>{
     try {
-         const allTags=await Tag.find({},{name:true,description:true});
+         const allCategories=await Categories.find({},{name:true,description:true});
          res.status(200).json({
             success:true,
-            message:'All tags returned successfully',
-            allTags,
+            message:'All Categories returned successfully',
+            allCategories,
          });
         
     } catch (error) {
