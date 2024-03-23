@@ -20,11 +20,41 @@ exports.createRating = async (req, res) => {
             });
         }
         //check if user already reviewed the course
+        const alreadyReviewed=await RatingAndReview.findOne({
+            user:userId,
+            course:courseId,
+        });
+
+        if(alreadyReviewed){
+            return res.status(403).json({
+                success:false,
+                message:'Course is  already reviewed by the user',
+            });
+        }
+
         // create  rating and review
+        const ratingReview =await RatingAndReview.create({
+            rating,review,
+            course:courseId,
+            user:userId,
+        });
+       
 
         //up9date course with this rating/review 
+        await Course.findByIdAndUpdate({_id:courseId},
+
+        {
+            $push:{
+                ratingAndReviews:ratingReview._id,
+            }
+        },
+        {new:true});
+        //return response
 
     } catch (error) {
 
     }
 }
+
+//getAverageRating
+//getAllRating
