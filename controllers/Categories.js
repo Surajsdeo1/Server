@@ -59,3 +59,68 @@ exports.showAllCategories=async(req,res)=>{
         
     }
 };
+
+
+
+exports.categoryPageDetails=async(req,res)=>{
+    try {
+        const {categoryId}=req.body;
+        //get course for the specified category
+        const selectedCategory=await Categories.findById(categoryId)
+        .populate("courses")
+        .exec();
+        console.log(selectedCategory);
+        //handle the case when the category is not found
+        if(!selectedCategory){
+            console.log("Category not found");
+            return res.status(404).json({
+                success:false,
+                message:"category not found",
+            });
+        }
+        //handle the case when there are no course
+        if(selectedCategory.course.length===0){
+            console.log("No course found for the selected  category.");
+            return res.status(404).json({
+                success:false,
+                message:"No course found for the selected  category.",
+            });
+
+        }
+        const selectedCourses=selectedCategory.course;
+        //get courses for other categories
+        const categoriesExceptSelected=await Categories.find({
+            _id:{$ne:categoryId},
+
+        }).populate("courses");
+        let differentCourses=[];
+        for(const  category of categoriesExceptSelected){
+            differentCourses.push(...category.courses);
+        }
+
+        //get top selling course across all categories
+
+        const allCategories=await Categories.find().populate("courses");
+        const allCourses=allCategories.flatMap((category) => category.courses);
+        const mostSellingCourses =allCourses
+        .sort(( a,b)=>b.sold-a.sold)
+        .slice(0,10);
+
+
+  res. status(200).json({
+    selectedCourses:selectedCourses,
+    differentCourses:differentCourses,
+    mostSellingCourses:mostSellingCourses,
+  });
+
+        
+    } catch (error) {
+        return res.status(500).json({
+            success:false,
+            message:"Internal server error",
+            error:error.message,
+        });
+        
+        
+    }
+};
